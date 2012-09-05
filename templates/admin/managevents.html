@@ -1,0 +1,179 @@
+$def with (session, msg=None)
+
+$# Nombre del cliente:
+$var username: $session.username.nombre1.lower().capitalize() $session.username.apellido1.lower().capitalize()
+<h2>Gesti&oacute;n de Eventos</h2>
+<div id="view"></div>
+<div id="dialogclients" title="Lista de Contactos" class="users-contain">
+    <p>Los contactos para el veh&iacute;culo <span style="font-weight:bold;color:#2180CE;"></span> son:</p>
+    <table id="phones" class="ui-widget ui-widget-content">
+        <thead>
+            <tr class="ui-widget-header ">
+                <th>Nombre</th>
+                <th>Documento</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+<div id="dialogdelete" title="Eliminar Evento">
+    <h3>Advertencia</h3>
+    <p>Esta acci&oacute;n borrar&aacute; permanentemente el Evento <span style="font-weight:bold;color:#2180CE;"></span> 
+     para el Vehiculo <span style="font-weight:bold;color:#2180CE;" id="veh"></span>.</p>
+    <p>¿Est&aacute; seguro que desea realizar esta acci&oacute;n?</p>
+</div>
+<p>$msg</p>
+<!--<p><a class="activate_modal" name="first_window" href="#">Primera ventana modal</a></p>-->
+
+<!-- mask modal -->
+<!--<div id="mask" class="close_modal"></div>-->
+<!-- Ventanas Modal -->
+<!--<div id="first_window" class="modal_window1" style="width:95%; height:90%"></div>-->
+
+<!--<script type="text/javascript" src="/static/js/picnet.table.filter.min.js"></script>-->
+<script>
+ jQuery(document).ready(function(){
+    var refreshId = setInterval( function() {
+        viewAjax();
+    }, 60000);
+
+    var viewAjax = function(){
+        jQuery('#view').load('/admin/viewmanagevent');
+    };
+
+    viewAjax();
+    //jQuery(':input').addClass('input');
+    //jQuery(':input').css('padding', '1px');
+
+    //getNumEvents();
+
+ });
+</script>
+<script>
+jQuery(document).ready(function(){
+    // Dialog Client
+    jQuery('#dialogclients').dialog({
+             autoOpen: false,
+             width: 500,
+             modal: true,
+             buttons: {
+                "Cerrar": function() {
+                          $$(this).dialog("close");
+                 }/*,
+                "Eliminar": function() {
+                       var id=$$(this).data('data-id');
+                       //var name=$$(this).data('data-name');
+                       var url=$$(this).data('data-url');
+                       href = url+'?id='+id//+'&amp;name='+name;
+                       console.log(href);
+                       window.location.href = href;
+                       $$(this).dialog("close");
+                 }*/
+             }
+    });
+    // Dialog Delete
+    jQuery('#dialogdelete').dialog({
+             autoOpen: false,
+             width: 500,
+             modal: true,
+             buttons: {
+                "Cancelar": function() {
+                          $$(this).dialog("close");
+                 },
+                "Eliminar": function() {
+                       var id=$$(this).data('data-id');
+                       //var name=$$(this).data('data-name');
+                       var url=$$(this).data('data-url');
+                       href = url+'?id='+id//+'&amp;name='+name;
+                       console.log(href);
+                       window.location.href = href;
+                       $$(this).dialog("close");
+                 }
+             }
+    });
+    // link Phones
+/*    jQuery('.search').click(function(){
+            var id=$$(this).attr('data-id'); // vehicle_id, id del vehículo
+            var name=$$(this).attr('data-name'); // placa del vehículo
+            var url=$$(this).attr('href'); // URL que retorna los clientes para el vehículo
+            //$$('#dialogphones').data('data-id', id);
+            //$$('#dialogdelete').data('data-name', name);
+            //$$('#dialogphones').data('data-url', url);
+            //$$('#dialogdelete').find('span').text(name.capitalize());
+            $$('#dialogclients').find('span').text(name);
+            $$('#dialogclients').dialog('open');
+            
+            //href = url+'?id='+id //+'&amp;name='+name;
+            //console.log(href);
+          /*  jQuery('#phones tbody').remove();
+            var newElement = [];
+            //console.log(id);
+            jQuery.ajax({
+                    //url      : '/admin/listingphones',
+                    url      : url,
+                    data     : {'id': id},
+                    type     : 'GET',
+                    dataType : 'json',
+                    success  : function(json){
+                        jQuery.each(json, function(index, obj){
+                                //newElement.push('<td>'+ obj[index] +'</td>');
+                                newElement.push('<tr><td>'+ obj[1].capitalize() +'</td><td>'+ obj[0] +'</td></tr>');
+                            });
+                        //console.log('<tbody>'+ newElement +'</tbody>');
+                        //console.log('<tbody>'+ newElement.join('') +'</tbody>');
+                        jQuery('#phones thead').after('<tbody>'+ newElement.join('') +'</tbody>');
+
+                    },
+                    error    : function(jqXHR, status, error){
+                        console.log("Se produjo un error: " + error);
+                    },
+                    complete : function(jqXHR, status){
+                        console.log("Petición terminada con estado: " + status);
+                        console.log(jqXHR);
+                    }
+            });
+            */
+            //return false;
+    //});
+
+
+});
+</script>
+<!--<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="/static/js/windowmodal.js"></script>
+<script>
+            jQuery(document).ready(function(){
+                    // Aplicamos el modal al <vid> 
+                    jQuery('.modal_window1').jtModal();
+
+                    /*function initialize() {
+                      var latlng = new google.maps.LatLng(5.06798,-75.51738);
+                      var myOptions = {
+                        zoom: 16,
+                        center: latlng,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                      };
+                      var map = new google.maps.Map(document.getElementById("first_window"),
+                        myOptions);
+                    }
+
+                    initialize();*/
+
+
+                    /*jQuery('.activate_modal').click(function(){
+                        console.log('CLICK');
+                        // obtener el id de la ventana modal almacenado 
+                        // en el name del elemento activado.
+                        var modal_id = jQuery(this).attr('name');
+
+                        // utilizar la funciÃ³n para mostrar
+                        show_modal(modal_id);
+
+                        initialize();      
+                    });*/
+
+                    jQuery('.close_modal').click(function(){
+                        // utilizar la función para cerrar
+                        close_modal();
+                    });
+            });
+</script> -->
