@@ -3,11 +3,12 @@ $def with (session, vehicles)
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>Monitoreo Vehicular</title>
+    <title>Reportes Vehicular</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Monitoreo">
+    <meta name="description" content="Reportes">
     <meta name="author" content="Jorge Alonso Toro">
     <link rel="icon" href="/static/img/favicon.png" type="image/png" />
+    <link type="text/css" rel="stylesheet" href="/static/css/ai/jquery-ui-1.8.23.custom.css" />
     <link href="/static/assets/css/bootstrap.css" rel="stylesheet">
     <link href="/static/assets/css/bootstrap-responsive.css" rel="stylesheet">
     <link href="/static/css/ui/default.css" rel="stylesheet">
@@ -69,28 +70,31 @@ $def with (session, vehicles)
     <div class="container-fluid">
         <div class="row-fluid">
             <div class="span3">
-                    <h2>Veh&iacute;culos</h2>
-                    <div>
-                    <table class="table" >
-                        <thead>
-                            <tr>
-                                <th>Placa</th>
-                                <th>Reporte</th>
-                                <th>Velocidad</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            $for i in vehicles.list():
-                                <tr class="ubicame" data-posicion="$i.position[1:-1]" rel="popover" data-original-title="Ubicación" data-content="$i.ubicacion">
-                                 <td>$i.placa.upper()</td>
-                                 <td>$i.fecha.strftime("%F %H:%M:%S")</td>
-                                 <td>$i.velocidad km/h</td>
-                                </tr>
-                        </tbody>
-                    </table>
-                    </div>
             </div>
-            <div class="span9">
+            <div class="span6">
+                <h2>Reporte</h2>
+                <div>
+                    <form id="form" class="well form-inline" action="javascript:void(0)">
+                        <label><strong>Veh&iacute;culo: </strong>
+                        <select id="select">
+                        $for i in vehicles.list():
+                            <option value="$i.id">$i.placa.upper()</option>
+                        </select></label>
+                        <label><strong>Fecha: </strong>
+                        <input type="text" id="datepicker" placeholder="Fecha para el reporte"></label>
+                        <button type="submit" id="search" class="btn">Buscar</button>
+                    </form>
+                </div>
+            </div>
+            <div class="span3">
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span6">
+                    <h2>Veh&iacute;culos</h2>
+                    <div id="reporte"></div>
+            </div>
+            <div class="span6">
                 <div id="map_canvas"></div>
             </div>
         </div>
@@ -110,6 +114,12 @@ $def with (session, vehicles)
 <script src="/static/assets/js/bootstrap-collapse.js"></script>
 <script src="/static/assets/js/bootstrap-carousel.js"></script>
 <script src="/static/assets/js/bootstrap-typeahead.js"></script>
+<script src="/static/js/jquery-ui-1.8.23.custom.min.js"></script>                                 
+<script>
+$$(function() {
+    $$( "#datepicker" ).datepicker({dateFormat:"dd-mm-yy" });
+});
+</script>
 <script>
 var eventos = function(){
     var num = null;
@@ -143,21 +153,47 @@ var mapi = function(lat, lng){
         jQuery('tbody tr').popover('hide');
 
         var mapHeight = jQuery(document).height();
-        jQuery('#map_canvas').height(mapHeight-(mapHeight*5.19/100));
+        jQuery('#map_canvas').height((mapHeight-(mapHeight*5.19/100))/1.21);
 
         jQuery(document).load(function(){
                 var mapHeight = jQuery(this).height();
-                jQuery('#map_canvas').height(mapHeight-(mapHeight*5.19/100));
+                jQuery('#map_canvas').height((mapHeight-(mapHeight*5.19/100))/1.21);
             });
 
         jQuery(window).resize(function(){
                 var mapHeight = jQuery(this).height();
-                jQuery('#map_canvas').height(mapHeight-(mapHeight*5.19/100));
+                jQuery('#map_canvas').height((mapHeight-(mapHeight*5.19/100))/1.21);
             });
 
-        $$('.ubicame').on('click', function(){
-            var position = $$(this).attr('data-posicion').split(",");
-            google.maps.event.addDomListener(window, 'load', mapi(position[0], position[1]));
+        $$('#search').on('click', function(){
+           var fecha = $$('#datepicker').attr('value');     
+           var id = $$('#form :selected').attr('value');
+           var url = '/user/reportdayjson?id='+id+'&amp;fecha='+fecha 
+           $$('#tbreport').remove();
+           if (fecha == "" || fecha == null){
+           } else {
+            var table = '<table id="tbreport" class="table table-hover"><thead><th>Fecha</th><th>Ubicación</th><th>Velocidad</th><head>'
+            $$.ajax({
+                url      : url,
+                type     : 'GET',
+                dataType : 'json',
+                success  : function(json){
+                    var newElement = [];
+                    jQuery.each(json, function(index, obj){
+                          newElement.push('<tr><td>'+obj.fecha+'</td><td class="ubicame" data-content="'+obj.ubicacion+'" data-posicion="'+obj.position+'">'+obj.ubicacion+'</td><td>'+obj.velocidad+'</td></tr>');
+                    });
+                    $$('#reporte').after(table+'<tbody>'+newElement.join('')+'</tbody></table>');
+                },
+                complete : function(jqXHR, status){
+                    $$('.ubicame').on('click', function(){
+                        var position = $$(this).attr('data-posicion').split(",");
+                        var lat=position[0].substring(1);
+                        var lng=position[1].substring(0, position[1].length-1);
+                        google.maps.event.addDomListener(window, 'load', mapi(lat, lng));
+                    });
+                }
+            });
+           }
         });
     });
 </script>
