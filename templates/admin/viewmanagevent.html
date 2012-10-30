@@ -1,0 +1,126 @@
+$def with (events)
+    <table id='tabla1'>
+        <thead>
+            <tr><th style="border-left:1px solid white;border-right:1px solid white;" filter="false">Cliente</th><th>Veh&iacute;culo</th><th>Unidad</th><th filter="false">Evento</th>
+            <th filter='false'>Ubicaci&oacute;n</th><th style="border-right:1px solid white" filter='false'>Fecha</th>
+            <th style="border-right:1px solid white;" filter='false'>Gestionar</th></tr>
+        </thead>
+        <tbody>
+            $for i in events:
+                <tr><td><a data-id='$i.vehicle_id' data-name="$i.placa.upper()" href="/admin/listingclients" class="search"></a></td>
+                <td>$i.placa.upper()</td>
+                $if i.tipo_event==1:
+                    <td style="color:#CD0000;">$i.gps_name</td>
+                $else:
+                    <td>$i.gps_name</td>
+                <td>$i.name</td>
+                <td data-position="$i.position">$i.ubicacion</td><td>$i.fecha.strftime("%F %H:%M:%S")</td>
+                <td style="text-align:center;" class="state" state="$i.admin_state"><a href="/admin/updateevent?id=$i.id" class="ok"></a>
+                <a data-id='$i.id' data-vehi="$i.placa.upper()" data-name="$i.name" href="/admin/deleteevent" class="delete"></a></td></tr>
+        </tbody>
+    </table>
+<div id="dialogclients" title="Lista de Contactos" class="users-contain">
+    <p>Los contactos para el veh&iacute;culo <span style="font-weight:bold;color:#2180CE;"></span> son:</p>
+    <table id="phones" class="ui-widget ui-widget-content">
+        <thead>
+            <tr class="ui-widget-header ">
+                <th>Nombre</th>
+                <th>Documento</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+<div id="dialogdelete" title="Eliminar Evento">
+    <h3>Advertencia</h3>
+    <p>Esta acci&oacute;n borrar&aacute; permanentemente el Evento <span style="font-weight:bold;color:#2180CE;"></span> 
+     para el Vehiculo <span style="font-weight:bold;color:#2180CE;" id="veh"></span>.</p>
+    <p>¿Est&aacute; seguro que desea realizar esta acci&oacute;n?</p>
+</div>
+<script type="text/javascript" src="/static/js/picnet.table.filter.min.js"></script>
+<script>
+jQuery(document).ready(function(){
+    jQuery('#dialogclients').dialog({
+             autoOpen: false,
+             width: 500,
+             modal: true,
+             buttons: {
+                "Cerrar": function() {
+                          $$(this).dialog("close");
+                 }
+             }
+    });
+    jQuery('#dialogdelete').dialog({
+             autoOpen: false,
+             width: 500,
+             modal: true,
+             buttons: {
+                "Cancelar": function() {
+                          $$(this).dialog("close");
+                 },
+                "Eliminar": function() {
+                       var id=$$(this).data('data-id');
+                       var url=$$(this).data('data-url');
+                       href = url+'?id='+id
+                       console.log(href);
+                       window.location.href = href;
+                       $$(this).dialog("close");
+                 }
+             }
+    });
+});
+</script>
+<script>
+ jQuery(document).ready(function(){
+    String.prototype.capitalize = function(){
+       return this.replace( /(^|\s)([a-z])/g , function(m,p1,p2){ return p1+p2.toUpperCase(); } );
+    };
+    jQuery('#tabla1').tableFilter();
+    jQuery(':input').addClass('input');
+    jQuery(':input').css('padding', '1px');;
+
+    jQuery('.delete').click(function(){
+            var id=$$(this).attr('data-id'); 
+            var name=$$(this).attr('data-name'); 
+            var url=$$(this).attr('href'); 
+            var vehi=$$(this).attr('data-vehi'); 
+            $$('#dialogdelete').data('data-id', id);
+            $$('#dialogdelete').data('data-name', name);
+            $$('#dialogdelete').data('data-vehi', vehi);
+            $$('#dialogdelete').data('data-url', url);
+            $$('#dialogdelete').find('span').text(name);
+            $$('#veh').text(vehi);
+            $$('#dialogdelete').dialog('open');
+            return false;
+    });
+    jQuery('.search').click(function(){
+            var id=$$(this).attr('data-id'); 
+            var name=$$(this).attr('data-name'); 
+            var url=$$(this).attr('href'); 
+            $$('#dialogclients').find('span').text(name);
+            $$('#dialogclients').dialog('open');
+            
+            jQuery('#phones tbody').remove();
+            var newElement = [];
+            jQuery.ajax({
+                    url      : url,
+                    data     : {'id': id},
+                    type     : 'GET',
+                    dataType : 'json',
+                    success  : function(json){
+                        jQuery.each(json, function(index, obj){
+                                newElement.push('<tr><td>'+ (obj[0].replace(/,/g, ' ')).capitalize() +'</td><td>'+ obj[1] +'</td></tr>');
+                            });
+                        jQuery('#phones thead').after('<tbody>'+ newElement.join('') +'</tbody>');
+                    }/*,
+                    error    : function(jqXHR, status, error){
+                        console.log("Se produjo un error: " + error);
+                    },
+                    complete : function(jqXHR, status){
+                        console.log("Petición terminada con estado: " + status);
+                        console.log(jqXHR);
+                    }*/
+            });
+            return false;
+    }); 
+ });
+</script>

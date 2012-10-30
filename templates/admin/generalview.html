@@ -1,0 +1,28 @@
+$def with (session, msg=None)
+$var username: $session.username.nombre1.lower().capitalize() $session.username.apellido1.lower().capitalize()
+<h2>Vista General de Monitoreo</h2>
+<div id="view"></div>
+<p>$msg</p>
+<div id="mask" class="close_modal"></div>
+<div id="first_window" class="modal_window1" style="width:95%; height:90%"></div>
+<script>
+ jQuery(document).ready(function(){
+    var refreshId = setInterval( function() {
+        viewAjax();
+    }, 60000);
+    var viewAjax = function(){
+        jQuery('#view').load('/admin/viewmonitoreo');
+    };
+    viewAjax();
+ });
+</script>
+<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="/static/js/windowmodal.js"></script>
+<script>
+jQuery(document).ready(function(){
+    jQuery('.modal_window1').jtModal();
+    jQuery('.close_modal').click(function(){
+         close_modal();
+    });
+});
+</script>
